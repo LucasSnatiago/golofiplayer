@@ -40,7 +40,7 @@ func ChooseMusic() string {
 
 func Play() error {
 	song := ChooseMusic()
-	ytdlp := exec.Command("yt-dlp", "-f", "bestaudio", song, "-o", "-")
+	ytdlp := exec.Command("yt-dlp", "-f", "bestaudio", "--yes-playlist", song, "-o", "-")
 	mpv := exec.Command("mpv", "--volume=50", "-")
 
 	ytdlpOut, err := ytdlp.StdoutPipe()
