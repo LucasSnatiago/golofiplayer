@@ -41,7 +41,7 @@ func ChooseMusic() string {
 func Play() error {
 	song := ChooseMusic()
 	ytdlp := exec.Command("yt-dlp", "-f", "bestaudio", "--yes-playlist", song, "-o", "-")
-	mpv := exec.Command("mpv", "--volume=50", "-")
+	ffplay := exec.Command("ffplay", "-nodisp", "-volume", "25", "-i", "-")
 
 	ytdlpOut, err := ytdlp.StdoutPipe()
 	if err != nil {
@@ -49,7 +49,7 @@ func Play() error {
 	}
 	defer ytdlpOut.Close()
 
-	mpv.Stdin = ytdlpOut
+	ffplay.Stdin = ytdlpOut
 
 	if err := ytdlp.Start(); err != nil {
 		return fmt.Errorf("failed to start yt-dlp: %v", err)
@@ -62,15 +62,15 @@ func Play() error {
 		ytdlp.Wait()
 	}()
 
-	if err := mpv.Start(); err != nil {
-		return fmt.Errorf("failed to start mpv: %v", err)
+	if err := ffplay.Start(); err != nil {
+		return fmt.Errorf("failed to start ffplay: %v", err)
 	}
 
 	defer func() {
-		if err := mpv.Process.Kill(); err != nil {
-			log.Printf("failed to kill mpv process: %v", err)
+		if err := ffplay.Process.Kill(); err != nil {
+			log.Printf("failed to kill ffplay process: %v", err)
 		}
-		mpv.Wait()
+		ffplay.Wait()
 	}()
 
 	// Esperar até que um sinal seja recebido para finalizar a execução

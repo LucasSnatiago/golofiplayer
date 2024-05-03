@@ -6,7 +6,6 @@ Dependecies:
 
 ```
 ffmpeg
-mpv
 yt-dlp
 ```
 
