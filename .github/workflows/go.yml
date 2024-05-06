@@ -26,9 +26,3 @@ jobs:
 
     - name: Test
       run: go test -v ./...
-
-    - name: Upload Go test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: golofiplayer-${{ matrix.go-version }}
-        path: golofiplayer-${{ matrix.go-version }}.json
