@@ -1,15 +1,43 @@
 package videos
 
-const LOFI = "https://www.youtube.com/watch?v=jfKfPfyJRdk"
-const LOFI_PIANO = "https://www.youtube.com/watch?v=ZXzTfdP5dDs"
-const LOFI_DARK = "https://www.youtube.com/watch?v=S_MOd40zlYU"
-const LOFI_SYNCWAVE = "https://www.youtube.com/watch?v=4xDzrJKXOOY"
-const LOFI_HIPHOP = "https://www.youtube.com/watch?v=rUxyKA_-grg"
-const BOYCE_AVENUE = "https://www.youtube.com/watch?v=FeluT-nU0Qk&list=RD1sioip9Uc4o"
+import "fmt"
 
-const HELP_MESSAGE = "Please choose your prefered song:\n 1- Lofi\n 2- Lofi Piano\n 3- Dark Lofi\n 4- SyncWave Lofi\n 5- Lofi Hip Hop\n 6- Boyce Avenue\n"
+type MusicInfo struct {
+	Name string
+	Link string
+}
+
+type MusicLinks struct {
+	Links []MusicInfo
+}
+
+func New() MusicLinks {
+	var m MusicLinks
+
+	m.Links = []MusicInfo{
+		{"Lofi", "https://www.youtube.com/watch?v=jfKfPfyJRdk"},
+		{"Lofi Piano", "https://www.youtube.com/watch?v=ZXzTfdP5dDs"},
+		{"Dark Lofi", "https://www.youtube.com/watch?v=S_MOd40zlYU"},
+		{"Lofi SyncWave", "https://www.youtube.com/watch?v=4xDzrJKXOOY"},
+		{"Lofi HipHop", "https://www.youtube.com/watch?v=jfKfPfyJRdk"},
+		{"Boyce Avenue Playlist", "https://youtube.com/playlist?list=PLtd--8s9Fp4XniKoIcLOD1RNTWwAtnCja"},
+	}
+
+	return m
+}
 
 // Get number of music links available
-func GetNumMusicLinks() int {
-	return 6
+func (m *MusicLinks) Length() int {
+	return len(m.Links)
+}
+
+// Help message
+func (m *MusicLinks) HelpMessage() string {
+	help := "Please choose your prefered song:\n"
+
+	for i := range m.Length() {
+		help += fmt.Sprintf(" %d- %s\n", i+1, m.Links[i].Name)
+	}
+
+	return help
 }
