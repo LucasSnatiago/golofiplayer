@@ -6,7 +6,7 @@ import (
 )
 
 func (c *ControlMusic) Play(song string) {
-	ytdlp := exec.Command("yt-dlp", "-f", "bestaudio", "--yes-playlist", song, "-o", "-")
+	ytdlp := exec.Command("yt-dlp", "-f", "bestaudio", "--default-search \"ytsearch\"", "--yes-playlist", song, "-o", "-")
 
 	ytdlpOut, err := ytdlp.StdoutPipe()
 	if err != nil {

@@ -12,10 +12,11 @@ import (
 
 type Game struct {
 	// Basic controling system
-	isPlaying  bool
-	isPaused   bool
-	lastOption uint
-	option     uint
+	isPlaying       bool
+	isPaused        bool
+	isAnyKeyPressed bool
+	lastOption      uint
+	option          uint
 
 	// Links for the songs
 	videos *videos.MusicLinks
@@ -42,15 +43,16 @@ func (g *Game) Update() error {
 		g.option = 6
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		g.isPlaying = !g.isPlaying
+		g.isPaused = !g.isPaused
+		g.isAnyKeyPressed = true
+	}
+
 	if !g.isPaused && g.option < uint(g.videos.Length()) {
 		// go Play(g.videos.Link(option))
 		g.isPlaying = true
 		g.isPaused = false
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		g.isPlaying = !g.isPlaying
-		g.isPaused = !g.isPaused
 	}
 
 	return nil
@@ -58,12 +60,11 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	// If there is no inpnut, skip draw.
-	if g.lastOption == g.option {
+	if !g.isAnyKeyPressed && g.lastOption == g.option {
 		// As SetScreenClearedEveryFrame(false) is called, the screen is not modified.
 		// In this case, Ebitengine optimizes and reduces GPU usages.
 		return
 	}
-	g.lastOption = g.option
 
 	screen.Clear()
 
@@ -79,6 +80,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	} else {
 		ebitenutil.DebugPrintAt(screen, "There is no Music Playing", 0, 16*14)
 	}
+
+	g.lastOption = g.option
+	g.isAnyKeyPressed = false
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -92,12 +96,13 @@ func main() {
 	ebiten.SetScreenClearedEveryFrame(false)
 
 	game := &Game{
-		isPlaying:    false,
-		isPaused:     false,
-		option:       255,
-		videos:       videos.New(),
-		audioContext: audio.NewContext(48000),
-		audioPlayer:  nil,
+		isPlaying:       false,
+		isPaused:        false,
+		isAnyKeyPressed: false,
+		option:          255,
+		videos:          videos.New(),
+		audioContext:    audio.NewContext(48000),
+		audioPlayer:     nil,
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
