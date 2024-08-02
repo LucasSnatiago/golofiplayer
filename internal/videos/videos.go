@@ -11,7 +11,7 @@ type MusicLinks struct {
 	Links []MusicInfo
 }
 
-func New() MusicLinks {
+func New() *MusicLinks {
 	var m MusicLinks
 
 	m.Links = []MusicInfo{
@@ -23,7 +23,7 @@ func New() MusicLinks {
 		{"Boyce Avenue Playlist", "https://youtube.com/playlist?list=PLtd--8s9Fp4XniKoIcLOD1RNTWwAtnCja"},
 	}
 
-	return m
+	return &m
 }
 
 // Get number of music links available
@@ -36,8 +36,12 @@ func (m *MusicLinks) HelpMessage() string {
 	help := "Please choose your prefered song:\n"
 
 	for i := range m.Length() {
-		help += fmt.Sprintf(" %d- %s\n", i+1, m.Links[i].Name)
+		help += fmt.Sprintf("   %d- %s\n", i+1, m.Links[i].Name)
 	}
 
 	return help
+}
+
+func (m *MusicLinks) Link(index uint) string {
+	return m.Links[index].Link
 }
