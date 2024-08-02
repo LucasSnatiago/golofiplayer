@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/LucasSnatiago/golofiplayer/audioplayer"
 	"github.com/LucasSnatiago/golofiplayer/internal/videos"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -24,6 +25,7 @@ type Game struct {
 	// Audio System
 	audioContext *audio.Context
 	audioPlayer  *audio.Player
+	audioSystem  *audioplayer.AudioPlayer
 }
 
 func (g *Game) Update() error {
@@ -53,6 +55,10 @@ func (g *Game) Update() error {
 		// go Play(g.videos.Link(option))
 		g.isPlaying = true
 		g.isPaused = false
+	}
+
+	if g.lastOption != g.option {
+		// g.audioContext.NewPlayerFromBytes()
 	}
 
 	return nil
@@ -103,6 +109,7 @@ func main() {
 		videos:          videos.New(),
 		audioContext:    audio.NewContext(48000),
 		audioPlayer:     nil,
+		audioSystem:     audioplayer.NewAudioPlayer(),
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
