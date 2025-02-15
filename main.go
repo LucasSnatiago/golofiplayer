@@ -1,66 +1,118 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
-	"os/exec"
-	"os/signal"
-	"syscall"
 
+	"github.com/LucasSnatiago/golofiplayer/audioplayer"
 	"github.com/LucasSnatiago/golofiplayer/internal/videos"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-func ChooseMusic() string {
-	music_option := 0
+type Game struct {
+	// Basic controling system
+	isPlaying       bool
+	isPaused        bool
+	isAnyKeyPressed bool
+	lastOption      uint
+	option          uint
 
-	videos := videos.New()
+	// Links for the songs
+	videos *videos.MusicLinks
 
-	for music_option < 1 || music_option > videos.Length() {
-		fmt.Print(videos.HelpMessage())
-		fmt.Scanf("%d", &music_option)
+	// Audio System
+	audioContext *audio.Context
+	audioPlayer  *audio.Player
+	audioSystem  *audioplayer.AudioPlayer
+}
+
+func (g *Game) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.Key0) {
+		g.option = 0
+	} else if inpututil.IsKeyJustPressed(ebiten.Key1) {
+		g.option = 1
+	} else if inpututil.IsKeyJustPressed(ebiten.Key2) {
+		g.option = 2
+	} else if inpututil.IsKeyJustPressed(ebiten.Key3) {
+		g.option = 3
+	} else if inpututil.IsKeyJustPressed(ebiten.Key4) {
+		g.option = 4
+	} else if inpututil.IsKeyJustPressed(ebiten.Key5) {
+		g.option = 5
+	} else if inpututil.IsKeyJustPressed(ebiten.Key6) {
+		g.option = 6
 	}
 
-	return videos.Links[music_option-1].Link
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		g.isPlaying = !g.isPlaying
+		g.isPaused = !g.isPaused
+		g.isAnyKeyPressed = true
+	}
+
+	if !g.isPaused && g.option < uint(g.videos.Length()) {
+		// go Play(g.videos.Link(option))
+		g.isPlaying = true
+		g.isPaused = false
+	}
+
+	if g.lastOption != g.option {
+		// g.audioContext.NewPlayerFromBytes()
+	}
+
+	return nil
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	// If there is no inpnut, skip draw.
+	if !g.isAnyKeyPressed && g.lastOption == g.option {
+		// As SetScreenClearedEveryFrame(false) is called, the screen is not modified.
+		// In this case, Ebitengine optimizes and reduces GPU usages.
+		return
+	}
+
+	screen.Clear()
+
+	ebitenutil.DebugPrintAt(screen, g.videos.HelpMessage(), 0, 0)
+	if g.option != 255 {
+		ebitenutil.DebugPrintAt(screen, "->", 0, int(g.option)*16)
+	}
+
+	if g.isPaused {
+		ebitenutil.DebugPrintAt(screen, "Music Paused!", 0, 16*14)
+	} else if g.isPlaying {
+		ebitenutil.DebugPrintAt(screen, "Music Playing!", 0, 16*14)
+	} else {
+		ebitenutil.DebugPrintAt(screen, "There is no Music Playing", 0, 16*14)
+	}
+
+	g.lastOption = g.option
+	g.isAnyKeyPressed = false
+}
+
+func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return 320, 240
 }
 
 func main() {
-	song := ChooseMusic()
-	ytdlp := exec.Command("yt-dlp", "-f", "bestaudio", "--yes-playlist", song, "-o", "-")
-	ffplay := exec.Command("ffplay", "-nodisp", "-volume", "25", "-i", "-")
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("Go Music Player!")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetScreenClearedEveryFrame(false)
 
-	ytdlpOut, err := ytdlp.StdoutPipe()
-	if err != nil {
-		log.Fatalf("failed to create pipe for yt-dlp stdout: %v", err)
-	}
-	defer ytdlpOut.Close()
-
-	ffplay.Stdin = ytdlpOut
-
-	if err := ytdlp.Start(); err != nil {
-		log.Fatalf("failed to start yt-dlp: %v", err)
-	}
-
-	defer func() {
-		if err := ytdlp.Process.Kill(); err != nil {
-			log.Printf("failed to kill yt-dlp process: %v", err)
-		}
-		ytdlp.Wait()
-	}()
-
-	if err := ffplay.Start(); err != nil {
-		log.Fatalf("failed to start ffplay: %v", err)
+	game := &Game{
+		isPlaying:       false,
+		isPaused:        false,
+		isAnyKeyPressed: false,
+		option:          255,
+		videos:          videos.New(),
+		audioContext:    audio.NewContext(48000),
+		audioPlayer:     nil,
+		audioSystem:     audioplayer.NewAudioPlayer(),
 	}
 
-	defer func() {
-		if err := ffplay.Process.Kill(); err != nil {
-			log.Printf("failed to kill ffplay process: %v", err)
-		}
-		ffplay.Wait()
-	}()
-
-	// Esperar até que um sinal seja recebido para finalizar a execução
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
+	if err := ebiten.RunGame(game); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -1,7 +1,4 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: Go
+name: linux
 
 on:
   push:
@@ -19,7 +16,15 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.22.2'
+        go-version: 'stable'
+
+    - name: Install dependencies
+      run: |
+        sudo apt update && \
+        sudo apt install -y libc6-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev \
+          libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config ffmpeg wget && \
+        wget "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux" && \
+        sudo mv yt-dlp_linux /usr/bin/yt-dlp
 
     - name: Build
       run: go build -v ./...
